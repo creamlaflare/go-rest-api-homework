@@ -46,10 +46,15 @@ func getTasks(res http.ResponseWriter, _ *http.Request) {
 	resp, err := json.Marshal(tasks)
 	if err != nil {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	res.Header().Set("Content-Type", "application/json")
 	res.WriteHeader(http.StatusOK)
-	res.Write(resp)
+	_, err = res.Write(resp)
+	if err != nil {
+		fmt.Printf("Error in writing a response for /tasks GET request,\n %v", err)
+		return
+	}
 }
 
 func getTask(res http.ResponseWriter, req *http.Request) {
@@ -69,7 +74,11 @@ func getTask(res http.ResponseWriter, req *http.Request) {
 
 	res.Header().Set("Content-Type", "application/json")
 	res.WriteHeader(http.StatusOK)
-	res.Write(resp)
+	_, err = res.Write(resp)
+	if err != nil {
+		fmt.Printf("Error in writing a response for /tasks/{id} GET request,\n %v", err)
+		return
+	}
 }
 
 func postTasks(res http.ResponseWriter, req *http.Request) {
@@ -95,12 +104,12 @@ func postTasks(res http.ResponseWriter, req *http.Request) {
 func deleteTask(res http.ResponseWriter, req *http.Request) {
 	id := chi.URLParam(req, "id")
 
-	delete(tasks, id)
-
 	if _, ok := tasks[id]; ok {
 		http.Error(res, "Задачи не существует", http.StatusBadRequest)
 		return
 	}
+
+	delete(tasks, id)
 
 	res.WriteHeader(http.StatusOK)
 }
